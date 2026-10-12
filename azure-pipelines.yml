@@ -1,0 +1,28 @@
+
+pool: InfraPool
+stages:
+- stage: TerraformInit
+  displayName: TerraformInitstage
+  jobs:
+  - job: TerraformInitvalidate
+    displayName: TerraformInitvalidatejob
+    steps:
+    - powershell: |
+        $terraformWorkingDirectory = '$(System.DefaultWorkingDirectory)\environments\preprod'
+        Write-Host "Terraform working directory: $terraformWorkingDirectory"
+        if (-not (Test-Path -LiteralPath $terraformWorkingDirectory -PathType Container)) {
+          throw "Terraform working directory does not exist: $terraformWorkingDirectory"
+        }
+      displayName: Validate Terraform working directory
+    - task: TerraformTask@5
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/environments/preprod'
+        backendServiceArm: 'InfraServiceConnection'
+        backendAzureRmUseEntraIdForAuthentication: true
+        backendAzureRmOverrideSubscriptionID: '95c42c0d-f71d-4420-8a12-f3157ba3471d'
+        backendAzureRmResourceGroupName: 'rg-abc'
+        backendAzureRmStorageAccountName: 'storageaccctesttt'
+        backendAzureRmContainerName: 'tfstate-dev-prabh'
+        backendAzureRmKey: 'preprod.tfstate'
